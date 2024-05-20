@@ -14,7 +14,7 @@ from matplotlib.figure import Figure
 from werkzeug.wrappers.response import Response as WerkzeugResponse
 
 # internal imports
-import codeapp.models as models
+from codeapp.models import Jobs
 from codeapp.utils import calculate_statistics, get_data_list, prepare_figure
 
 # define the response type
@@ -28,17 +28,34 @@ bp = Blueprint("bp", __name__, url_prefix="/")
 
 @bp.get("/")  # root route
 def home() -> Response:
-    # TODO: create here the route that renders the home.html file
-    pass
+    # gets dataset
+    dataset: list[Jobs] = get_data_list()
+
+    # get the statistics that is supposed to be shown
+    counter: dict[int, int] = calculate_statistics(dataset)
+
+    # render the page
+    return render_template("home.html", counter=counter)
 
 
 @bp.get("/image")
 def image() -> Response:
+    # gets dataset
+    dataset: list[Jobs] = get_data_list()
+
+    # get the statistics that is supposed to be shown
+    counter: dict[int, int] = calculate_statistics(dataset)
+
     # creating the plot
+
     fig = Figure()
-
-    # TODO: populate the plot in this part of the code
-
+    fig.gca().grid(ls=":")
+    fig.gca().hist(
+        list(sorted(counter.keys())),
+        bins=10,
+    )
+    fig.gca().set_xlabel("Spending Score (1-100)")
+    fig.tight_layout()
     ################ START -  THIS PART MUST NOT BE CHANGED BY STUDENTS ################
     # create a string buffer to hold the final code for the plot
     output = io.StringIO()
@@ -62,13 +79,22 @@ def about() -> Response:
 ################################## web service routes ##################################
 
 
-@bp.get("/json-dataset")
+@bp.get("/json-dataset")  # root route
 def get_json_dataset() -> Response:
-    # TODO
-    pass
+    # gets dataset
+    dataset: list[Jobs] = get_data_list()
+
+    # render the page
+    return jsonify(dataset)
 
 
-@bp.get("/json-stats")
+@bp.get("/json-stats")  # root route
 def get_json_stats() -> Response:
-    # TODO
-    pass
+    # gets dataset
+    dataset: list[Jobs] = get_data_list()
+
+    # get the statistics that is supposed to be shown
+    counter: dict[int, int] = calculate_statistics(dataset)
+
+    # render the page
+    return jsonify(counter)
